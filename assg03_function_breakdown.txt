@@ -1,0 +1,25 @@
+Here is a short, function-by-function breakdown of what your code is doing, organized by their logical sections:
+
+### 1. Data Structure Methods
+* **`Task.__init__`**: Initializes a task object to store its ID, resource cost, prerequisites (dependencies), and the required LLM type (ChatGPT or Gemini).
+* **`SolverState.__init__`**: Creates a "snapshot" of the current schedule. It tracks the current day, which tasks are done, how many prompts are left, and the students' workload.
+* **`SolverState.__lt__`**: A magic method that allows Python's priority queue to sort these snapshots based on the day (used for A* search).
+* **`SolverState.get_key()`**: Generates a unique "fingerprint" of the current state. This allows the A* algorithm to recognize if it has reached the exact same scenario through a different path so it can avoid redundant calculations.
+
+### 2. Heuristics & Validation
+* **`validate_limits`**: A quick safety check before the heavy lifting begins. It immediately stops the program if any single task costs more than the daily maximum limits.
+* **`calculate_heuristic`**: The "guessing" engine for your advanced algorithms. It calculates an optimistic estimate of how many days are remaining based on the leftover tasks and available daily limits.
+
+### 3. The `Scheduler` Class (Core Logic)
+* **`reset_stats`**: Wipes the slate clean (clears node counts and saved schedules) before running a new algorithm.
+* **`is_task_available`**: The rule enforcer. It checks if a specific task can be assigned to a student right now by verifying dependencies, checking if there are enough prompts left, and applying the specific rules of Case A or Case B.
+* **`run_astar`**: Executes the **A* Search**. It uses a priority queue combined with the heuristic to find the optimal schedule as efficiently as possible.
+* **`run_dfs` & `_dfs_recursive`**: The setup and recursive engine for **Depth-First Search**. It blindly explores every possible path of task assignments until it finds a solution or hits the day limit.
+* **`run_dfbb` & `_dfbb_recursive`**: The setup and recursive engine for **Depth-First Branch and Bound**. It acts like DFS, but uses the heuristic to smartly "prune" (cut off) paths that are mathematically proven to be worse than the current best solution.
+
+### 4. Input & Output
+* **`parse_input_file`**: Opens your text file, skips the comments, and translates the raw text lines into the dictionary of `Task` objects that the algorithms understand.
+* **`print_schedule`**: Takes the raw, internal dictionary of completed tasks and formats it into the clean, human-readable "Day 1, Day 2..." output at the end of the script.
+
+### 5. Main Execution
+* **`main`**: The control center. It grabs your command-line arguments, triggers either the `MIN_DAYS` or `MIN_COST` logic, manages the sequence of running all three algorithms for the performance report, and prints the final results.
